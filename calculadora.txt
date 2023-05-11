@@ -1,0 +1,32 @@
+Main()
+int hola :  10 ;
+int num1 : 3,0 ;
+int num2 : 24 ;
+int resultado : 0 ;
+bool var : true ;
+boolean var2 : false ;
+double num3 : 0 ;
+double num4 : 20 ;
+double resultadox : num2  ;
+{
+string saludo : 'Hola' ;
+string result ;
+}
+Main*
+resultado : num1  ;
+printf ( resultado ) ;
+
+resultadox : num3  ;
+printf ( resultado ) ;
+
+resultado : num1 * num2 ;
+mostrar ( resultado ) ;
+
+resultado : num1 / num2 ;
+mostrar ( resultado ) ;   
+
+
+
+
+
+
