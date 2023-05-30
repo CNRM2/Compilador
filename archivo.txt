@@ -1,13 +1,6 @@
-namespace nombre
-main{
+proyecto nombre;
 
-int dato = 1;
-int dato2 = 3;
-string = 0;
-      {
-         dato+dato2;
-      }
-}
+funcion entero dinero (entero prestamo){ 
 
 
 
