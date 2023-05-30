@@ -1,11 +1,12 @@
-namespace nombre
-main{
+proyecto nombre
 
-int dato = 1;
-int dato2 = 3;
-string = 0;
+hacer
+{
+entero dato = 1;
+entero numero = 3;
+cadena = 0;
       {
-         dato+dato2;
+         dato+numero;
       }
 }
 

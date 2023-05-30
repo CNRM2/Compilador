@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
+using System.Diagnostics.Eventing.Reader;
+
 namespace Compilador
 {
     class Analizador_Lexico
@@ -31,10 +33,10 @@ namespace Compilador
         //análisis léxico
         public void matriz_transicion(string nombre_archivo)
         {           //matriz de transición
-            int[,] matriz = new int[32,31]
+            int[,] matriz = new int[32, 31]
 
     {    /*a..z, A...Z	0…9	     .	   _	menos(-) e, E	 '	    "	  EOL	EOF	   mas(+)  *	   /	 ^	    %	igual(=)  <    	 >	     ,	    ;	   (	  )	     [	    ]	   {	  }	    o	   y	  n   	O.C	  EB        */
-         /*       0      1      2       3     4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20     21     22     23     24     25     26     27     28     29     30    31  */ 
+         /*       0      1      2       3     4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20     21     22     23     24     25     26     27     28     29     30      */ 
                  {1    , 4    , 26   , -9   , 19   , 1    , 11   , 13   , 0    , 0    , 15   , 20   , 16   , 21   , 22   , 23   , 25   , 24   , 128  , 129  , 130  , 131  , 132  , 133  , 134  , 135  , 1    , 1    , 1    , -9 ,  0  },
                  {1    , 1    , 101  , 2    , 101  , 1    , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 101  , 1    , 1    , 1    , 101, 101  },
                  {3    , 3    , -1   , 2    , -1   , 3    , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , -1   , 3    , 3    , 3    , -1 , -1   },
@@ -67,7 +69,7 @@ namespace Compilador
                  {-8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , 30   , -8   , -8   , -8 , -8   },
                  {-8   , -8   , 127  , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8   , -8 , -8   },
                   {31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 136  , 136  , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31   , 31, 31   }
-              
+
     };
 
 
@@ -107,43 +109,43 @@ namespace Compilador
                     //if (cont == cadena.Length) { }
                     //leer o no leer
 
-                    if (caracter >= 'A' && caracter <= 'Z') { if (caracter == 'E') { c = 1; } else { c = 0; } } //letras may
-                    else if (caracter >= 'a' && caracter <= 'z') { if (caracter == 'e') { c = 1; } else { c = 0; } } //letras min
-                    else if (caracter >= 1 && caracter <= 9) { c = 2; } //numeros
-                    else 
-                        switch(caracter)
-                    {
-                        case '\u005F': { c = 3; break; } //guion bajo _   
-                        case '\u002E': { c = 2; break; } //punto .
-                        case '\u0022': { c = 7; break; } //comillas "
-                        case '\u0027': { c = 6; break; } //apóstrofe '
-                        case '\u002C': { c = 18; break; } //coma ,
-                        case '\u003B': { c = 19; break; } // punto y coma ;
-                        case '\u002B': { c = 10; break; } //suma +
-                        case '\u002D': { c = 4; break; } //resta - o guion
-                        case '\u002F': { c = 12; break; } // diagonal /
-                        case '\u002A': { c = 11; break; } //asterisco *
-                        case '\u005E': { c = 13; break; } //potencia ^
-                        case '\u0025': { c = 14; break; } //porcentaje %
-                        case '\u003E': { c = 17; break; } //mayor que >
-                        case '\u003C': { c = 16; break; } //menor que <
-                        case '\u003D': { c = 15; break; } //igualdad =
-                        case '\u0028': { c = 20; break; } //parentesis (
-                        case '\u0029': { c = 21; break; } //parentesis )
-                        case '\u007B': { c = 24; break; } // llave {
-                        case '\u007D': { c = 25; break; } // llave }
-                        case '\u005B': { c = 22; break; } //corchete [
-                        case '\u005D': { c = 23; break; } //corchete ]
-                        case '\u0026': { c = 27; break; } // &                              
-                        case '\u000A': { c = 8; break; } //salto de línea \n u000A
-                        case '\u000D': { c = 28; break; } //
-                        case '\u0020': { c = 30; break; } // espacio en blanco o u0020
-                        case '\u0009': { c = 31; break; } //tab \t
-                        case '\u0003': { c = 9; break; } //final del texto o end of file
-                        default: { c = 29; break; }
+                    if (caracter >= 'A' && caracter <= 'Z') { if (caracter == 'E') { c = 0; } else { c = 0; } } //letras may
+                    else if (caracter >= 'a' && caracter <= 'z') { if (caracter == 'e') { c = 0; } else { c = 0; } } //letras min
+                    else if (caracter >= '0' && caracter <= '9') { c = 1; } //numeros
+                    else
+                        switch (caracter)
+                        {
+                            case '\u005F': { c = 3; break; } //guion bajo _   
+                            case '\u002E': { c = 2; break; } //punto .
+                            case '\u0022': { c = 7; break; } //comillas "
+                            case '\u0027': { c = 6; break; } //apóstrofe '
+                            case '\u002C': { c = 18; break; } //coma ,
+                            case '\u003B': { c = 19; break; } // punto y coma ;
+                            case '\u002B': { c = 10; break; } //suma +
+                            case '\u002D': { c = 4; break; } //resta - o guion
+                            case '\u002F': { c = 12; break; } // diagonal /
+                            case '\u002A': { c = 11; break; } //asterisco *
+                            case '\u005E': { c = 13; break; } //potencia ^
+                            case '\u0025': { c = 14; break; } //porcentaje %
+                            case '\u003E': { c = 17; break; } //mayor que >
+                            case '\u003C': { c = 16; break; } //menor que <
+                            case '\u003D': { c = 15; break; } //igualdad =
+                            case '\u0028': { c = 20; break; } //parentesis (
+                            case '\u0029': { c = 21; break; } //parentesis )
+                            case '\u007B': { c = 24; break; } // llave {
+                            case '\u007D': { c = 25; break; } // llave }
+                            case '\u005B': { c = 22; break; } //corchete [
+                            case '\u005D': { c = 23; break; } //corchete ]
+                            case '\u0026': { c = 27; break; } // &                              
+                            case '\u000A': { c = 8; break; } //salto de línea \n u000A
+                            case '\u000D': { c = 28; break; } //
+                            case '\u0020': { c = 30; break; } // espacio en blanco o u0020
+                            case '\u0009': { c = 31; break; } //tab \t
+                            case '\u0003': { c = 9; break; } //final del texto o end of file
+                            default: { c = 29; break; }
 
 
-                    }
+                        }
 
                     estado = matriz[estado, c];
 
@@ -159,8 +161,8 @@ namespace Compilador
                     }
 
 
-                    if (estado != 101 && estado != 102 && estado != 103 && estado != 104 && estado != 105 && estado != 110 &&
-                        estado != 112 && estado != 117 && estado != 119 && estado != 121 && estado != 122)
+                    if (estado != 101 && estado != 102 && estado != 103 && estado != 104 && estado != 105 && estado != 106 &&
+                        estado != 114 && estado != 119 && estado != 120 && estado != 107)
                     { leer = true; }
                     else { leer = false; }
 
@@ -174,6 +176,12 @@ namespace Compilador
                     }
                     if (leer == true)
                         Console.Write(caracter);
+                    if (estado != 250)
+                    {
+                       
+                    }
+
+
 
                     //conver = new string(simbolo); //convertiremos el simbolo token guardado en el arreglo de chars a string.
 
@@ -201,11 +209,14 @@ namespace Compilador
 
 
 
+
             } //fin del texto
 
 
-            file.CerrarLeer();
 
+
+            file.CerrarLeer();
+            Console.WriteLine("\nLista de Tokens");
             Console.WriteLine("\nR  C Token  Sim");
 
             foreach (Token token in tokens)
@@ -214,7 +225,7 @@ namespace Compilador
             (token.Renglon + "  " + token.Columna + "  " + token.No_token + "   " + token.Simbolo);
 
             }
-
+            Console.WriteLine("\nLista de Errores");
             Console.WriteLine("\nE  C  F  Sim");
 
             foreach (Error error in errores)
@@ -225,18 +236,29 @@ namespace Compilador
 
             }
 
-          
+
             System.Console.ReadLine();
 
         }//dfin edl metodo
 
 
-        //análisis sintáctico 
-       
-        //instrucciones
-        
-      
-       
+        public void Bloque_Principal(int token)
+        {
+            do
+            {
+                
+            }
+            while (true);
+        }
+
+        public void Asig_Variables(int token)
+        {
+            do
+            {
+
+            }
+            while (true);
+        }
 
 
         public void Errores(int error)
@@ -251,7 +273,7 @@ namespace Compilador
                 case -6: { Console.WriteLine("Error léxico, no se cerraron comillas."); break; }
                 case -7: { Console.WriteLine("Error léxico, hay más de un carácter."); break; }
                 case -8: { Console.WriteLine("Error léxico, no se cerró con apóstrofe."); break; }
-                case -9: { Console.WriteLine("Valio Gorro"); break; }
+                case -9: { Console.WriteLine("Se esperaba otra cosa"); break; }
             }
 
         }
@@ -260,27 +282,23 @@ namespace Compilador
             int token = 0;
             switch (simb)
             {
-                case "main": { token = 233; break; }
-                case "int": { token = 234; break; }
-                case "string": { token = 235; break; }
-                case "char": { token = 236; break; }
-                case "double": { token = 237; break; }
-                case "true": { token = 238; break; }
-                case "false": { token = 239; break; }
-                case "else": { token = 240; break; }
-                case "if": { token = 241; break; }
-                case "for": { token = 242; break; }
-                case "while": { token = 243; break; }
-                case "switch": { token = 244; break; }
-                case "break": { token = 245; break; }
-                case "do": { token = 246; break; }
-                case "null": { token = 247; break; }
-                case "write": { token = 248; break; }
-                case "read": { token = 249; break; }
-                case "namespace": { token = 250; break; }
-                case "bool": { token = 251; break; }
-                case "case": { token = 252; break; }
-                case "default": { token = 253; break; }
+                case "proyecto": { token = 233; break; }
+                case "real": { token = 234; break; }
+                case "cadena": { token = 235; break; }
+                case "entero": { token = 236; break; }
+                case "logico": { token = 237; break; }
+                case "si": { token = 238; break; }
+                case "entonces": { token = 239; break; }
+                case "sino": { token = 240; break; }
+                case "desde": { token = 241; break; }
+                case "hasta": { token = 242; break; }
+                case "hacer": { token = 243; break; }
+                case "mientras": { token = 244; break; }
+                case "funcion": { token = 245; break; }
+                case "procedimiento": { token = 246; break; }
+                case "leer": { token = 247; break; }
+                case "escribir": { token = 248; break; }
+                case "regresa": { token = 249; break; }
             }
 
             return token;
