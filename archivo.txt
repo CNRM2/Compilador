@@ -1,6 +1,4 @@
 proyecto nombre;
-
-procedimiento hola (cadena ocho)
 {
-  mientras(lala == 1)
+leer ("Hola");
 }
