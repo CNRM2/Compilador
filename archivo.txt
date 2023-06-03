@@ -1,8 +1,6 @@
 proyecto nombre;
 
-funcion entero dinero (entero prestamo){ 
-
-
-
-
-
+procedimiento hola (cadena ocho)
+{
+  mientras(lala == 1)
+}
