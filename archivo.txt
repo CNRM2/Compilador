@@ -1,5 +1,7 @@
 proyecto nombre;
-.y.
+//Saquenme del tec
+#°!
 {
-leer ("Hola"); /*hola*/
+leer ("Hola Mundo");
 }
+

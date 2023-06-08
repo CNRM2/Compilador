@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics.Eventing.Reader;
+using System.IO.Ports;
 
 namespace Compilador
 {
@@ -36,7 +37,7 @@ namespace Compilador
         public void matriz_transicion(string nombre_archivo)
         {           //matriz de transición
             int[,] matriz = new int[32, 31]
-              
+
     {             /*a..z, A...Z	0…9	   .	   _   menos(-) e, E   '	   "     EOL EOF	  mas(+)   *     /	     ^	   %	igual(=)  <    	 >	    ,	   ;	  (	     )	   [	  ]	     {	     }	   o	  y	      n   	O.C	 EB     */
                 /*       0      1      2       3     4      5      6      7      8      9      10     11     12     13     14     15     16     17     18     19     20     21     22     23     24     25     26     27     28     29   30      */ 
            /* 0 */      {1    , 4    , 26   , -9   , 19   , 1    , 11   , 13   , 0    , 0    , 15   , 20   , 16   , 21   , 22   , 23   , 25   , 24   , 128  , 129  , 130  , 131  , 132  , 133  , 134  , 135  , 1    , 1    , 1    , -9 ,  0  },
@@ -140,7 +141,7 @@ namespace Compilador
                             case '\u005D': { c = 23; break; } //corchete ]
                             case '\u000A': { c = 8; break; } //salto de línea \n u000A
                             case '\u000D': { c = 28; break; } //
-                            case 'y': { c=27; break; }
+                            case 'y': { c = 27; break; }
                             case '\u0020': { c = 30; break; } // espacio en blanco o u0020
                             case '\u0009': { c = 31; break; } //tab \t
                             case '\u0003': { c = 9; break; } //final del texto o end of file
@@ -148,7 +149,7 @@ namespace Compilador
 
 
                         }
-                    if(caracter == 'n') { c = 28; }
+                    if (caracter == 'n') { c = 28; }
                     if (caracter == 'y') { c = 27; }
                     if (caracter == 'o') { c = 26; }
 
@@ -165,9 +166,9 @@ namespace Compilador
                     }
 
 
-                    if (estado != 101 && estado != 102 && estado != 104 && estado != 106 && estado != 103 
+                    if (estado != 101 && estado != 102 && estado != 104 && estado != 106
                         && estado != 109 &&
-                        estado != 114 && estado != 119 && estado != 120 && estado != 107 && estado != 111)                    
+                        estado != 114 && estado != 119 && estado != 120 && estado != 107 && estado != 111)
                     { leer = true; }
                     else { leer = false; }
 
@@ -175,10 +176,10 @@ namespace Compilador
                     {
                         if (estado > 0)
                         {
-                            if (caracter != '\u0020' && caracter != '\u000A' && caracter != '\u0009' && caracter != '\u000D' )
+                            if (caracter != '\u0020' && caracter != '\u000A' && caracter != '\u0009' && caracter != '\u000D')
                             { simbolo = simbolo + caracter; }
                         }
-                        
+
                     }
                     if (leer == true)
                         Console.Write(caracter);
@@ -229,9 +230,15 @@ namespace Compilador
                 Errores(error.No_error);
                 Console.WriteLine
             (error.No_error + "  " + error.Columna + "  " + error.Fila + "   " + error.Simbolo);
-
             }
-            Bloque_Principal();
+            if (error != null && error.No_error <= 0)
+            {
+                Console.WriteLine("Errores Lexicos encontrados");
+            }
+            else
+            {
+                Bloque_Principal();
+            }
             System.Console.ReadLine();
 
 
@@ -240,8 +247,6 @@ namespace Compilador
 
         public void Bloque_Principal()
         {
-            int ultimo = tokens.Count - 1;
-
             if (((Token)(tokens[i])).No_token != 233)
             { Console.WriteLine("Error de Sintaxis. Se esperaba el nombre proyecto"); return; }
             siguiente_token();
@@ -263,13 +268,6 @@ namespace Compilador
             siguiente_token();
             if (((Token)(tokens[i])).No_token == 134)
             { bloque(); }
-
-
-
-
-
-
-
         }
 
         public void Declaracion_Variables()
@@ -299,7 +297,6 @@ namespace Compilador
         }
         public void Funcion()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token == 245)
                 siguiente_token();
             if (((Token)(tokens[i])).No_token == 234 || ((Token)(tokens[i])).No_token == 235 ||
@@ -314,7 +311,6 @@ namespace Compilador
         }
         public void parametro()
         {
-            bool error = false;
             if (tokens[i].No_token != 130) { Console.WriteLine("Error de Sintaxis, Se esperaba '('"); }
             
             do
@@ -333,7 +329,6 @@ namespace Compilador
             while (tokens[i].No_token == 128);
             if (tokens[i].No_token != 131)
             {
-                error = true;
                 Console.WriteLine("Error de Sintaxis, Se esperaba )");
                 return;
             }
@@ -341,15 +336,17 @@ namespace Compilador
 
         public void bloque()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token == 134) { instrucciones(); } else { Console.WriteLine("Error de Sintaxis, Se esperaba '{'"); }
-            siguiente_token();
+            if (tokens[i].No_token != 135)
+            {
+                Console.WriteLine("Error de Sintaxis, Falta }");
+                return;
+            }
 
         }
 
         public void instrucciones()
         {
-            int ultimo = tokens.Count - 1;
             do
             {
                 siguiente_token();
@@ -362,29 +359,23 @@ namespace Compilador
                 if (tokens[i].No_token == 248) { escribir(); }
                 siguiente_token();
             }
-            while (i < ultimo && tokens[i].No_token == 135);
+            while (tokens[i].No_token != 135);
             siguiente_token();
-            if (tokens[i].No_token != 135)
-            {
-                Console.WriteLine("Error de Sintaxis, Falta }");
-                return;
-            }
         }
         public void asignacion()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
             siguiente_token();
-            if (((Token)(tokens[i])).No_token == 114) { expresion(); } else Console.WriteLine("Error de Sintaxis, Se esperaba = ");
+            if (tokens[i].No_token == 124 || tokens[i].No_token == 123 || tokens[i].No_token == 19 
+                || tokens[i].No_token == 120 || tokens[i].No_token == 121 || tokens[i].No_token == 122) { expresion(); } 
+            else Console.WriteLine("Error de Sintaxis, Se esperaba el operador de asignacion ");
             siguiente_token();
             if (((Token)(tokens[i])).No_token != 129) { Console.WriteLine("Error de Sintaxis, Se esperaba ; "); }
             siguiente_token();
-
         }
 
         public void procedimiento()
         {
-            int ultimo = tokens.Count - 1;
             siguiente_token();
             if (((Token)(tokens[i])).No_token != 101)
             { Console.WriteLine("Error de Sintaxis, se esperaba ID"); }
@@ -429,7 +420,6 @@ namespace Compilador
 
         public void si()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token != 130)
             {
                 Console.WriteLine("Error de Sintaxis, Se esperaba C");
@@ -460,7 +450,6 @@ namespace Compilador
         }
         public void sino()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token == 134)
             { instrucciones(); }
             siguiente_token();
@@ -499,43 +488,34 @@ namespace Compilador
 
         public void mientras()
         {
-            int ultimo = tokens.Count - 1;
             siguiente_token();
             if (((Token)(tokens[i])).No_token == 130)
             {
                 expresion();
-            }
-            else Console.WriteLine("Error de Sintaxis, Se esperaba {");
-            siguiente_token();
-            if (((Token)(tokens[i])).No_token != 131)
-            {
-                Console.WriteLine("Error de Sintaxis, Se esperaba }");
             }
             bloque();
         }
 
         public void hasta()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token == 243) { expresion(); };
             siguiente_token();
         }
 
         public void leer()
         {
-            int ultimo = tokens.Count - 1;
             siguiente_token();
             if (((Token)(tokens[i])).No_token == 130) { cadena(); } 
             else if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
             if (((Token)(tokens[i])).No_token != 131) Console.WriteLine("Error de Sintaxis, Se esperaba )");
             siguiente_token();
             if (((Token)(tokens[i])).No_token != 129) Console.WriteLine("Error de Sintaxis, Se esperaba ;");
+            siguiente_token();
 
         }
 
         public void escribir()
         {
-            int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token != 130) Console.WriteLine("Error de Sintaxis, Se esperaba (");
             if (((Token)(tokens[i])).No_token == 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
             else if ((((Token)(tokens[i])).No_token != 101)) { cadena(); }
@@ -546,7 +526,6 @@ namespace Compilador
         }
         public void cadena()
         {
-            int ultimo = tokens.Count - 1;
             do
             {
                 siguiente_token();
@@ -558,7 +537,6 @@ namespace Compilador
         }
         public void expresion() 
         {
-            int ultimo = tokens.Count - 1;
             expresion_simple();
             if (tokens[i].No_token == 119 || tokens[i].No_token == 120 ||
                     tokens[i].No_token == 121 || tokens[i].No_token == 122
@@ -571,14 +549,12 @@ namespace Compilador
 
         public void expresion_simple()
         {
-            int ultimo = tokens.Count - 1;
             siguiente_token();
-            if (tokens[i].No_token != 106 || tokens[i].No_token != 107)
+            if (tokens[i].No_token == 106 || tokens[i].No_token == 107)
             {
                 siguiente_token();
                 termino();
             }  
-            
         }
 
         public void termino()
@@ -594,8 +570,6 @@ namespace Compilador
 
         public void factor()
         {
-            int ultimo = tokens.Count - 1;
-
             siguiente_token();
             if (((Token)(tokens[i])).No_token == 127) { siguiente_token(); expresion(); }
             siguiente_token();
@@ -641,15 +615,14 @@ namespace Compilador
         {
             switch (error)
             {
-                case -1: { Console.WriteLine("Error léxico, debe finalizar con números."); break; }
-                case -2: { Console.WriteLine("Error léxico, debe continuar  con números después del punto."); break; }
-                case -3: { Console.WriteLine("Error léxico, símbolo indefinido. Para operador AND escribir &&."); break; }
-                case -4: { Console.WriteLine("Error léxico, símbolo indefinido. Para operador OR escribir ||."); break; }
-                case -5: { Console.WriteLine("Error léxico, símbolo indefinido."); break; }
-                case -6: { Console.WriteLine("Error léxico, no se cerraron comillas."); break; }
-                case -7: { Console.WriteLine("Error léxico, hay más de un carácter."); break; }
-                case -8: { Console.WriteLine("Error léxico, no se cerró con apóstrofe."); break; }
-                case -9: { Console.WriteLine("Se esperaba otra cosa"); break; }
+                case -1: { Console.WriteLine("Error léxico, se esperaba una letra."); break; }
+                case -2: { Console.WriteLine("Error léxico, se esperaba un numero."); break; }
+                case -4: { Console.WriteLine("Error léxico, se esperaba comilla."); break; }
+                case -5: { Console.WriteLine("Error léxico, se esperaba comillas."); break; }
+                case -6: { Console.WriteLine("Error léxico, se esperaba cierre de comentario."); break; }
+                case -7: { Console.WriteLine("Error léxico, se esperaba un operador logico."); break; }
+                case -8: { Console.WriteLine("Error léxico, se esperaba cierre del operador logico."); break; }
+                case -9: { Console.WriteLine("Error léxico, se esperaba otra cosa."); break; }
             }
 
         }
@@ -691,4 +664,4 @@ namespace Compilador
     } //fin de la clase
 
 
-} //fin del namespace
+}
