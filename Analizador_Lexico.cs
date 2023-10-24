@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Diagnostics.Eventing.Reader;
 using System.IO.Ports;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Compilador
 {
@@ -15,6 +16,8 @@ namespace Compilador
         //tabla de token
         //ArrayList tokens = new ArrayList();
         List<Token> tokens = new List<Token>();
+        List<GuardarVariable> listaVariables = new List<GuardarVariable>();
+        Dictionary<string, bool> variablesDeclaradas = new Dictionary<string, bool>();
         Token token;
         Error error;
         ArrayList errores = new ArrayList();
@@ -249,13 +252,13 @@ namespace Compilador
         {
             if (((Token)(tokens[i])).No_token != 233)
             { Console.WriteLine("Error de Sintaxis. Se esperaba el nombre proyecto"); return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 101)
             { Console.WriteLine("Error de Sintaxis. Se esperaba el ID"); return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 129)
             { Console.WriteLine("Error de Sintaxis. Se esperaba ;"); return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 245)
             { Funcion(); }
             if (((Token)(tokens[i])).No_token == 246)
@@ -265,49 +268,105 @@ namespace Compilador
             if (((Token)(tokens[i])).No_token == 234 || ((Token)(tokens[i])).No_token == 235 ||
                 ((Token)(tokens[i])).No_token == 236 || ((Token)(tokens[i])).No_token == 237)
             { Declaracion_Variables(); } //Se identifica la declaración de algún tipo de dato, existe una declaración de variables.
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 134)
             { bloque(); }
         }
 
         public void Declaracion_Variables()
         {
-           
-            if (((Token)(tokens[i])).No_token == 234 || ((Token)(tokens[i])).No_token == 235 ||
-               ((Token)(tokens[i])).No_token == 236 || ((Token)(tokens[i])).No_token == 237) {}
-            else { Console.WriteLine("Error de Sintaxis, Se esperaba el tipo de dato"); }
-
+            string tipoDato = null;
             do
             {
-                siguiente_token();
-                if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de sintaxis. Se esperaba el ID"); }
-                siguiente_token();
-                if (((Token)(tokens[i])).No_token == 114) { siguiente_token(); }
-                if (((Token)(tokens[i])).No_token == 101) { siguiente_token(); }
+                string idVariable = null;
+                string valor = null;
+
+                if (((Token)(tokens[i])).No_token == 234 || ((Token)(tokens[i])).No_token == 235 ||
+                    ((Token)(tokens[i])).No_token == 236 || ((Token)(tokens[i])).No_token == 237)
+                {
+                    tipoDato = ((Token)(tokens[i])).Simbolo;
+                }
+                else
+                {
+                    string lexema = ((Token)(tokens[i])).Simbolo;
+                    int tipoDatoToken = Reserve(lexema);
+                    if (tipoDatoToken != 0)
+                    {
+                        tipoDato = lexema;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error de Sintaxis, Se esperaba el tipo de dato");
+                    }
+                }
+
+                do
+                {
+                    Siguiente_token();
+                    if (((Token)(tokens[i])).No_token != 101)
+                    {
+                        Console.WriteLine("Error de sintaxis. Se esperaba el ID");
+                    }
+                    idVariable = ((Token)(tokens[i])).Simbolo;
+
+                    Siguiente_token();
+                    if (((Token)(tokens[i])).No_token == 114)
+                    {
+                        Siguiente_token();
+                        valor = ((Token)(tokens[i])).Simbolo;
+                    }
+                    if (((Token)(tokens[i])).No_token == 102)
+                    {
+                        Siguiente_token();
+                    }
+
+                    if (variablesDeclaradas.ContainsKey(idVariable))
+                    {
+                        Console.WriteLine("Error: La variable con el ID '" + idVariable + "' ya ha sido declarada.");
+                    }
+                    else
+                    {
+                        variablesDeclaradas[idVariable] = true;
+                        listaVariables.Add(new GuardarVariable
+                        {
+                            TipoDato = tipoDato,
+                            Id = idVariable,
+                            Valor = valor
+                        });
+                    }
+                }
+                while (((Token)(tokens[i])).No_token == 128);
+                Siguiente_token();
             }
-            while (((Token)(tokens[i])).No_token == 128);
-            if (((Token)(tokens[i])).No_token == 129) { siguiente_token(); }
-            else Console.WriteLine("Se esperaba ;");
+            while (((Token)(tokens[i])).No_token != 134);
+
+
             if (((Token)(tokens[i])).No_token == 134)
             {
                 bloque();
             }
-            else Console.WriteLine("Error de Sintaxis, Se esperaba {");
-
         }
+
+        public class GuardarVariable
+        {
+            public string TipoDato { get; set; }
+            public string Id { get; set; }
+            public string Valor { get; set; }
+        }
+
         public void Funcion()
         {
             if (((Token)(tokens[i])).No_token == 245)
-                siguiente_token();
+                Siguiente_token();
             if (((Token)(tokens[i])).No_token == 234 || ((Token)(tokens[i])).No_token == 235 ||
                 ((Token)(tokens[i])).No_token == 236 || ((Token)(tokens[i])).No_token == 237)
-                siguiente_token();
+                Siguiente_token();
             if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de sintaxis. Se esperaba el ID"); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130) { parametro(); } else { Console.WriteLine("Error de Sintaxis, Se esperaba '('"); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 134) { bloque_funcion(); } else { Console.WriteLine("Error de Sintaxis, Se esperaba '{'"); }
-            siguiente_token();
+            Siguiente_token();
         }
         public void parametro()
         {
@@ -315,15 +374,15 @@ namespace Compilador
             
             do
             {
-                siguiente_token();
+                Siguiente_token();
                 if (tokens[i].No_token == 234 || tokens[i].No_token == 235 ||
                     tokens[i].No_token == 236 || tokens[i].No_token == 237)
                 {
-                    siguiente_token();
+                    Siguiente_token();
                 }
                 else Console.WriteLine("Error de Sintaxis, Falta el tipo de dato");
                 if (tokens[i].No_token != 101) { Console.WriteLine("Error de sintaxis. Se esperaba el ID"); }
-                siguiente_token();
+                Siguiente_token();
                 
             }
             while (tokens[i].No_token == 128);
@@ -349,7 +408,7 @@ namespace Compilador
         {
             do
             {
-                siguiente_token();
+                Siguiente_token();
                 if (tokens[i].No_token == 245) { Declaracion_Variables(); }
                 if (tokens[i].No_token == 238) { si(); }
                 if (tokens[i].No_token == 247) { leer(); }
@@ -357,36 +416,36 @@ namespace Compilador
                 if (tokens[i].No_token == 244) { mientras(); }
                 if (tokens[i].No_token == 241) { desde(); }
                 if (tokens[i].No_token == 248) { escribir(); }
-                siguiente_token();
+                Siguiente_token();
             }
             while (tokens[i].No_token != 135);
-            siguiente_token();
+            Siguiente_token();
         }
         public void asignacion()
         {
             if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
-            siguiente_token();
+            Siguiente_token();
             if (tokens[i].No_token == 124 || tokens[i].No_token == 123 || tokens[i].No_token == 19 
                 || tokens[i].No_token == 120 || tokens[i].No_token == 121 || tokens[i].No_token == 122) { expresion(); } 
             else Console.WriteLine("Error de Sintaxis, Se esperaba el operador de asignacion ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 129) { Console.WriteLine("Error de Sintaxis, Se esperaba ; "); }
-            siguiente_token();
+            Siguiente_token();
         }
 
         public void procedimiento()
         {
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 101)
             { Console.WriteLine("Error de Sintaxis, se esperaba ID"); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130)
             { parametro(); } else Console.WriteLine("Error de Sintaxis, se esperaba ( ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 134)
             { bloque_procedimiento(); }
             else Console.WriteLine("Error de Sintaxis, se esperaba { ");
-            siguiente_token();
+            Siguiente_token();
         }
 
         public void bloque_procedimiento()
@@ -395,7 +454,7 @@ namespace Compilador
             if (((Token)(tokens[i])).No_token != 134)
             { Console.WriteLine("Error de Sintaxis, Se esperaba {"); }
             instrucciones();
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 135)
             { Console.WriteLine("Error de Sintaxis, se esperaba }"); }
 
@@ -407,13 +466,13 @@ namespace Compilador
             if (((Token)(tokens[i])).No_token != 249)
             { Console.WriteLine("Error de Sintaxis, se esperaba la palabra regresa"); }
             expresion();
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 129)
             { Console.WriteLine("Error de Sintaxis, se esperaba ;"); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 135)
             { Console.WriteLine("Error de Sintaxis, se esperaba }"); }
-            siguiente_token();
+            Siguiente_token();
 
 
         }
@@ -427,7 +486,7 @@ namespace Compilador
             do
             {
 
-                siguiente_token();
+                Siguiente_token();
                 expresion();
                 if (((Token)(tokens[i])).No_token == 239)
                 {
@@ -438,7 +497,7 @@ namespace Compilador
                 if (((Token)(tokens[i])).No_token == 134)
                 {
                     bloque();
-                    siguiente_token();
+                    Siguiente_token();
                 }
             }
             while ((((Token)(tokens[i])).No_token != 131));
@@ -452,21 +511,21 @@ namespace Compilador
         {
             if (((Token)(tokens[i])).No_token == 134)
             { instrucciones(); }
-            siguiente_token();
+            Siguiente_token();
         }
 
         public void desde()
         {
             int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ("); };
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 114) { expresion(); } else Console.WriteLine("Error de Sintaxis, Se esperaba = ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 243) { hasta(); } else Console.WriteLine("Error de Sintaxis, Se esperaba hacer ");
-            siguiente_token();
+            Siguiente_token();
             expresion();
             if (((Token)(tokens[i])).No_token == 135) { bloque(); } else Console.WriteLine("Error de Sintaxis, Se esperaba { ");
-            siguiente_token();
+            Siguiente_token();
 
         }
 
@@ -474,11 +533,11 @@ namespace Compilador
         {
             int ultimo = tokens.Count - 1;
             if (((Token)(tokens[i])).No_token == 134) { bloque(); } else Console.WriteLine("Error de Sintaxis, Se esperaba { ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 244) { mientras(); } else Console.WriteLine("Error de Sintaxis, Se esperaba mientras ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130) { expresion(); } else Console.WriteLine("Error de Sintaxis, Se esperaba ( ");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 131)
             {
                 Console.WriteLine("Error de Sintaxis, Se esperaba )");
@@ -488,7 +547,7 @@ namespace Compilador
 
         public void mientras()
         {
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130)
             {
                 expresion();
@@ -499,18 +558,18 @@ namespace Compilador
         public void hasta()
         {
             if (((Token)(tokens[i])).No_token == 243) { expresion(); };
-            siguiente_token();
+            Siguiente_token();
         }
 
         public void leer()
         {
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130) { cadena(); } 
             else if (((Token)(tokens[i])).No_token != 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
             if (((Token)(tokens[i])).No_token != 131) Console.WriteLine("Error de Sintaxis, Se esperaba )");
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 129) Console.WriteLine("Error de Sintaxis, Se esperaba ;");
-            siguiente_token();
+            Siguiente_token();
 
         }
 
@@ -519,7 +578,7 @@ namespace Compilador
             if (((Token)(tokens[i])).No_token != 130) Console.WriteLine("Error de Sintaxis, Se esperaba (");
             if (((Token)(tokens[i])).No_token == 101) { Console.WriteLine("Error de Sintaxis, Se esperaba ID"); }
             else if ((((Token)(tokens[i])).No_token != 101)) { cadena(); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token != 131) Console.WriteLine("Error de Sintaxis, Se esperaba )");
             if (((Token)(tokens[i])).No_token != 129) Console.WriteLine("Error de Sintaxis, Se esperaba ;");
 
@@ -528,9 +587,9 @@ namespace Compilador
         {
             do
             {
-                siguiente_token();
+                Siguiente_token();
                 if (((Token)(tokens[i])).No_token != 105) Console.WriteLine("Error de Sintaxis, Se esperaba ID ");
-                siguiente_token();
+                Siguiente_token();
             }
             while ((((Token)(tokens[i])).No_token != 131));
             
@@ -542,17 +601,18 @@ namespace Compilador
                     tokens[i].No_token == 121 || tokens[i].No_token == 122
                     || tokens[i].No_token == 123 || tokens[i].No_token == 124)
             {
-                siguiente_token();
+                Siguiente_token();
             }
             expresion_simple();
         }
 
+
         public void expresion_simple()
         {
-            siguiente_token();
+            Siguiente_token();
             if (tokens[i].No_token == 106 || tokens[i].No_token == 107)
             {
-                siguiente_token();
+                Siguiente_token();
                 termino();
             }  
         }
@@ -563,34 +623,34 @@ namespace Compilador
             if (tokens[i].No_token == 106 || tokens[i].No_token == 107
                 || tokens[i].No_token == 10)
             {
-                siguiente_token();
+                Siguiente_token();
                 factor();
             }
         }
 
         public void factor()
         {
-            siguiente_token();
-            if (((Token)(tokens[i])).No_token == 127) { siguiente_token(); expresion(); }
-            siguiente_token();
+            Siguiente_token();
+            if (((Token)(tokens[i])).No_token == 127) { Siguiente_token(); expresion(); }
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 101) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 236) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 234) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 101) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 235) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 251) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 250) { return; }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 101) { lista_valores(); }
-            siguiente_token();
+            Siguiente_token();
             if (((Token)(tokens[i])).No_token == 130) { expresion(); }
-            siguiente_token();
+            Siguiente_token();
             expresion();
         }
 
@@ -598,13 +658,13 @@ namespace Compilador
         {
             do
             {
-                if (tokens[i].No_token != 101) { siguiente_token(); }
-                if (tokens[i].No_token != 236) { siguiente_token(); }
-                if (tokens[i].No_token != 234) { siguiente_token(); }
-                if (tokens[i].No_token != 101) { siguiente_token(); }
-                if (tokens[i].No_token != 235) { siguiente_token(); }
-                if (tokens[i].No_token != 250) { siguiente_token(); }
-                if (tokens[i].No_token != 251) { siguiente_token(); }
+                if (tokens[i].No_token != 101) { Siguiente_token(); }
+                if (tokens[i].No_token != 236) { Siguiente_token(); }
+                if (tokens[i].No_token != 234) { Siguiente_token(); }
+                if (tokens[i].No_token != 101) { Siguiente_token(); }
+                if (tokens[i].No_token != 235) { Siguiente_token(); }
+                if (tokens[i].No_token != 250) { Siguiente_token(); }
+                if (tokens[i].No_token != 251) { Siguiente_token(); }
             }
             while (tokens[i].No_token == 128);
             if(tokens[i].No_token != 128) { Console.WriteLine("No se genero lista de valores"); }
@@ -626,6 +686,8 @@ namespace Compilador
             }
 
         }
+
+       
         public int Reserve(string simb)
         {
             int token = 0;
@@ -654,8 +716,8 @@ namespace Compilador
 
             return token;
          }
-
-        public void siguiente_token()
+     
+        public void Siguiente_token()
         {
             int ultimo = tokens.Count - 1;
             if (i < ultimo) { i++; }

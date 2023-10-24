@@ -1,6 +1,7 @@
 proyecto nombre;
-//Saquenme del tec
-#°!
+
+entero numero = 10;
+entero numero = 10;
 {
 leer ("Hola Mundo");
 }
