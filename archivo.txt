@@ -1,8 +1,21 @@
 proyecto nombre;
 
 entero numero = 10;
-entero numero = 10;
-{
-leer ("Hola Mundo");
-}
 
+funcion entero numero(entero numero)
+{
+   si(numero == %)
+   entonces
+   {
+      mientras(numero >= 10)
+      {
+          
+      }
+
+   }
+   sino
+   {
+     numero  = 0;
+   }
+
+}
