@@ -352,7 +352,8 @@ namespace Compilador
                         }
                         else
                         {
-                            Console.WriteLine("Error de Sintaxis, Se esperaba el tipo de dato");
+                            Console.Write("Error de Sintaxis, Se esperaba el tipo de dato");
+                            return;
                         }
                     }
 
@@ -364,23 +365,34 @@ namespace Compilador
                     if (((Token)(tokens[i])).No_token != 101)
                     {
                         Console.WriteLine("Error de sintaxis. Se esperaba el ID");
+                        return;
                     }
                     idVariable = ((Token)(tokens[i])).Simbolo;
 
                     Siguiente_token();
-                    if (((Token)(tokens[i])).No_token == 114)
+                    if (((Token)(tokens[i])).No_token != 114)
+                    {
+                        Console.WriteLine("Error de sintaxis. Se esperaba el =");
+                        return;
+                    }
+                    if (((Token)(tokens[i])).No_token != 102)
                     {
                         Siguiente_token();
                         valor = ((Token)(tokens[i])).Simbolo;
                     }
-                    if (((Token)(tokens[i])).No_token == 102)
+                    else
                     {
-                        Siguiente_token();
+                        Console.WriteLine("Error de sintaxis. Se esperaba el valor");
+                        return;
                     }
+                    Siguiente_token();
+                    if(((Token)(tokens[i])).No_token != 129)
+                        { Console.WriteLine("Error de sintaxis. Se esperaba el ;"); return;}
 
                     if (variablesDeclaradas.ContainsKey(idVariable))
                     {
                         Console.WriteLine("Error: La variable con el ID '" + idVariable + "' ya ha sido declarada.");
+                        return;
                     }
                     else
                     {
@@ -388,6 +400,7 @@ namespace Compilador
                         if (!EsCompatible(tipoDato, valor))
                         {
                             Console.WriteLine("Error: El valor asignado a '" + idVariable + "' no es compatible con el tipo de dato '" + tipoDato + "'.");
+                            return;
                             // Puedes manejar el error como desees, por ejemplo, detener la compilación o seguir con el siguiente token
                             Siguiente_token();
                         }

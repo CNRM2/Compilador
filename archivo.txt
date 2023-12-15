@@ -1,11 +1,11 @@
 proyecto nombre;
 
-Entero numero = 10;
+Entero numero = 5;
 Entero numero3 = 10;
 
 funcion entero numero(cadena numero)
 {
-   Entero numero = 10;
+   Entero numero = 6;
    si(numero3 == 0)
    entonces
    {
