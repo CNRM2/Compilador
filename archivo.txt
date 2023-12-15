@@ -1,13 +1,15 @@
 proyecto nombre;
 
-entero numero = 10;
+Entero numero = 10;
+Entero numero3 = 10;
 
-funcion entero numero(entero numero)
+funcion entero numero(cadena numero)
 {
-   si(numero == %)
+   Entero numero = 10;
+   si(numero3 == 0)
    entonces
    {
-      mientras(numero >= 10)
+      mientras(verdadero)
       {
           
       }
@@ -15,7 +17,6 @@ funcion entero numero(entero numero)
    }
    sino
    {
-     numero  = 0;
+     numero  = verdadero;
    }
-
 }
